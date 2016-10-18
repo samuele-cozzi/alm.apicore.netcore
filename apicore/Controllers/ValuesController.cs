@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,34 +13,89 @@ namespace apicore.Controllers
     {
         // GET api/values
         [HttpGet]
-        public IEnumerable<string> Get()
+        public IEnumerable<Value> Get()
         {
-            return new string[] { "value1", "value2", "value3", "vlaue4" };
+            var client = new HttpClient
+            {
+                BaseAddress = new Uri("https://api.orchestrate.io/v0/Values?limit=100")
+            };
+
+            client.DefaultRequestHeaders.Add("Authorization","Basic OTI2MGQzNzMtYjEyMC00YzY2LThlNTQtNTZjMmNlNjNhYjk2Og==");
+            
+            var response = client.GetAsync("").Result;
+            var root = response.Content.ReadAsAsync<RootObject>().Result;
+
+            List<Value> values = new List<Value>();
+
+            foreach (var result in root.results){
+                Value value = new Value(){
+                    id = result.path.key,
+                    name = result.value.name
+                };
+                values.Add(value);
+            }
+
+            return values;
         }
 
         // GET api/values/5
         [HttpGet("{id}")]
-        public string Get(int id)
+        public Value Get(string id)
         {
-            return "value";
+            var client = new HttpClient
+            {
+                BaseAddress = new Uri("https://api.orchestrate.io/v0/Values/" + id)
+            };
+
+            client.DefaultRequestHeaders.Add("Authorization","Basic OTI2MGQzNzMtYjEyMC00YzY2LThlNTQtNTZjMmNlNjNhYjk2Og==");
+            
+            var response = client.GetAsync("").Result;
+            var value = response.Content.ReadAsAsync<Value>().Result;
+            value.id = id;
+            return value;
         }
 
         // POST api/values
         [HttpPost]
-        public void Post([FromBody]string value)
+        public HttpResponseMessage Post([FromBody]Value value)
         {
+            var client = new HttpClient
+            {
+                BaseAddress = new Uri("https://api.orchestrate.io/v0/Values")
+            };
+
+            client.DefaultRequestHeaders.Add("Authorization","Basic OTI2MGQzNzMtYjEyMC00YzY2LThlNTQtNTZjMmNlNjNhYjk2Og==");
+
+            HttpResponseMessage response = client.PostAsJsonAsync("", value).Result;
+            return response;
         }
 
         // PUT api/values/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody]string value)
+        public HttpResponseMessage Put(string id, [FromBody]Value value)
         {
+            var client = new HttpClient
+            {
+                BaseAddress = new Uri("https://api.orchestrate.io/v0/Values/" + id)
+            };
+
+            client.DefaultRequestHeaders.Add("Authorization","Basic OTI2MGQzNzMtYjEyMC00YzY2LThlNTQtNTZjMmNlNjNhYjk2Og==");
+
+            return client.PutAsJsonAsync("", value).Result;
         }
 
         // DELETE api/values/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public HttpResponseMessage Delete(string id)
         {
+            var client = new HttpClient
+            {
+                BaseAddress = new Uri("https://api.orchestrate.io/v0/Values/" + id)
+            };
+
+            client.DefaultRequestHeaders.Add("Authorization","Basic OTI2MGQzNzMtYjEyMC00YzY2LThlNTQtNTZjMmNlNjNhYjk2Og==");
+
+            return client.DeleteAsync("").Result;
         }
     }
 }
