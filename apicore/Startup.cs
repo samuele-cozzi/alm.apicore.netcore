@@ -30,7 +30,7 @@ namespace apicore
             // Add framework services.
             services.AddMvc();
             services.AddSwaggerGen();
-            
+            services.Configure<Orchestrate>(Configuration.GetSection("Orchestrate"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
